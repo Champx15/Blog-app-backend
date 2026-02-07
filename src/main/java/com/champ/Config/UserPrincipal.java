@@ -10,9 +10,8 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.Collections;
 
-@Service
 public class UserPrincipal implements UserDetails {
-    @Autowired
+
     final private User user;
     public UserPrincipal(User user){
         this.user=user;

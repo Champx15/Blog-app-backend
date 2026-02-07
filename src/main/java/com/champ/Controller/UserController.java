@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Optional;
 
 @RestController
-@CrossOrigin(origins = {"https://blog-editorial.netlify.app/"})
 @RequestMapping("api/v1/me")
 public class UserController {
 

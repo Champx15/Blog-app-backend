@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface BlogRepo extends JpaRepository<Blog,Long> {
     List<Blog> findByUserId(Long id);
+   boolean existsByIdAndUserId(Long id, Long userId);
 }

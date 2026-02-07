@@ -15,7 +15,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = {"https://blog-editorial.netlify.app/"})
 @RequestMapping("api/v1/auth/")
 public class AuthController {
 

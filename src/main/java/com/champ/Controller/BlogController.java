@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -15,7 +16,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/blogs")
-@CrossOrigin(origins = {"https://blog-editorial.netlify.app/"})
 public class BlogController {
     @Autowired
     private BlogService blogService;
@@ -37,19 +37,20 @@ public class BlogController {
     }
 
 
-    @PostMapping("/add")   //id of user not note
+    @PostMapping
     public ResponseEntity<Blog> addBlog(@RequestBody Blog blogRequest,HttpServletRequest request) throws IOException {
         Long id = jwtService.extractIdFromRequest(request);
         Blog newBlog = blogService.createBlog(blogRequest.getTitle(),blogRequest.getBody(),blogRequest.getImageUrl(),id);
         return new ResponseEntity<>(newBlog,HttpStatus.CREATED);
     }
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<HttpStatus> deleteBlog(@PathVariable Long id){
+    @PreAuthorize("@blogSecurity.isOwner(#id,authentication.name)")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBlog(@PathVariable Long id){
         blogService.removeBlog(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PatchMapping("/edit/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<Blog> editBlog(@RequestBody Blog blogRequest,@PathVariable Long id){
         Blog blog = blogService.editBlog(blogRequest, id);
         return new ResponseEntity<>(blog, HttpStatus.OK);

@@ -1,20 +1,17 @@
 package com.champ.Config;
 
-
-import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import java.security.Key;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,18 +22,10 @@ public class JwtService {
 
     private final String secretKey;
 
-    public JwtService() {
-        this.secretKey = getTheSecretKey();
+    public JwtService(@Value("${hmac.secret}") String secretKey) {
+        this.secretKey = secretKey;
     }
 
-    private String getTheSecretKey() {
-        Dotenv dotenv = Dotenv.load();
-        String base64Key = dotenv.get("HMAC_SECRET");
-        if (base64Key == null || base64Key.isEmpty()) {
-            throw new RuntimeException("HMAC_SECRET not set in environment variables!");
-        }
-        return base64Key;
-    }
 
     public String generateToken(String id) {
         Map<String, Object> claims = new HashMap<>();
