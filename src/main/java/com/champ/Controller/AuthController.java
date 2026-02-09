@@ -1,10 +1,12 @@
 package com.champ.Controller;
 
 import com.champ.Config.JwtService;
-import com.champ.Dto.LoginRequestDto;
-import com.champ.Dto.LoginResponseDto;
+import com.champ.Dto.*;
 import com.champ.Entity.User;
 import com.champ.Repo.LoginRepo;
+import com.champ.Service.EmailService;
+import com.champ.Service.OtpService;
+import com.champ.Service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,9 @@ public class AuthController {
 
     @Autowired
     private LoginRepo repo;
+    @Autowired private OtpService otpService;
+    @Autowired private RedisService redisService;
+    @Autowired private EmailService emailService;
     @Autowired
     private AuthenticationManager authManager;
     private String jwt=null;
@@ -42,13 +47,63 @@ public class AuthController {
             return new ResponseEntity<>(responseDto,HttpStatus.UNAUTHORIZED);
         }
     }
-        @PostMapping("/signup")
-        public ResponseEntity<HttpStatus> signup(@RequestBody LoginRequestDto loginRequestDto){
-            String encodedPass = encoder.encode((loginRequestDto.getPass()));
-            User user = new User(loginRequestDto.getName(),loginRequestDto.getEmail(),encodedPass);
-            repo.save(user);
-            return new ResponseEntity<>(HttpStatus.CREATED);
+        @PostMapping("/signup/send-mail")
+        public ResponseEntity<HttpStatus> sendMail(@RequestBody EmailRequestDto emailRequestDto) throws Exception {
+            User findUser = repo.findByEmail(emailRequestDto.getEmail());
+            if(findUser!=null) return new ResponseEntity<>(HttpStatus.CONFLICT);
+
+            String otp = otpService.generateOtp();
+            redisService.saveOtp(emailRequestDto.getEmail(), otp);
+            emailService.sendHtmlEmail(emailRequestDto.getEmail(),otp);
+            return new ResponseEntity<>(HttpStatus.OK);
         }
+        
+        @PostMapping("/signup/verify")
+        public ResponseEntity<HttpStatus> addUser(@RequestBody SignupVerifyDto request) {
+            String otp = redisService.getOtp(request.getEmail());
+            String receivedOtp = String.valueOf(request.getOtp());
+            if (receivedOtp.equals(otp)) {
+                String encodedPass = encoder.encode(request.getPass());
+                User user = new User(request.getName(),request.getEmail(),encodedPass);
+                repo.save(user);
+                return new ResponseEntity<>(HttpStatus.CREATED);
+            }
+            return  new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+    @PostMapping("/signup/check-email")
+    public ResponseEntity<HttpStatus> checkEmail(@RequestBody EmailRequestDto  request) throws Exception {
+        User user = repo.findByEmail(request.getEmail());
+        if(user!=null){
+            String otp= otpService.generateOtp();
+            redisService.saveOtp(request.getEmail(), otp);
+            emailService.sendHtmlEmail(request.getEmail(),otp);
+            return new ResponseEntity<>(HttpStatus.OK);
+
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    String email=null;
+    @PostMapping("/login/verify-otp")
+    public ResponseEntity<HttpStatus> forgotPass(@RequestBody ForgotPassDto request){
+        email=request.getEmail();
+        String otp = redisService.getOtp(request.getEmail());
+        String receivedOtp = request.getOtp();
+        if(receivedOtp.equals(otp)){
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+    @PostMapping("/login/reset-pass")
+    public  ResponseEntity<HttpStatus> resetPass(@RequestBody PassRequestDto requestDto){
+        User user = repo.findByEmail(email);
+        String encodedPass = encoder.encode(requestDto.getNewPass());
+        user.setPassHash(encodedPass);
+        repo.save(user);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 
 
     }

@@ -50,6 +50,7 @@ public class BlogController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @PreAuthorize("@blogSecurity.isOwner(#id,authentication.name)")
     @PatchMapping("/{id}")
     public ResponseEntity<Blog> editBlog(@RequestBody Blog blogRequest,@PathVariable Long id){
         Blog blog = blogService.editBlog(blogRequest, id);
