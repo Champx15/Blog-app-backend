@@ -24,7 +24,7 @@ public class MyUserDetailService implements UserDetailsService {
     }
 
     public UserDetails loadUserById(Long id) throws UsernameNotFoundException {
-        User user = repo.findById(id).orElseThrow(() -> new RuntimeException("User doesn't exists"));
+        User user = repo.findById(id).orElseThrow(() -> new UsernameNotFoundException("User doesn't exists"));
         return new UserPrincipal(user);
     }
 }

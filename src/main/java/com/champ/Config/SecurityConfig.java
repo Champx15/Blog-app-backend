@@ -48,7 +48,7 @@ public class SecurityConfig {
 
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("https://blog-editorial.netlify.app","http://localhost:5173","http://192.168.1.19:5173"));
+        config.setAllowedOrigins(List.of("https://blog-editorial.netlify.app"));
         config.setAllowedMethods(List.of("GET","POST","DELETE","OPTIONS","PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
