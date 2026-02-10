@@ -54,7 +54,7 @@ public class AuthController {
 
             String otp = otpService.generateOtp();
             redisService.saveOtp(emailRequestDto.getEmail(), otp);
-            emailService.sendHtmlEmail(emailRequestDto.getEmail(),otp);
+            emailService.sendVerifyEmail(emailRequestDto.getEmail(),otp);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         
@@ -77,7 +77,7 @@ public class AuthController {
         if(user!=null){
             String otp= otpService.generateOtp();
             redisService.saveOtp(request.getEmail(), otp);
-            emailService.sendHtmlEmail(request.getEmail(),otp);
+            emailService.sendForgotEmail(request.getEmail(),otp);
             return new ResponseEntity<>(HttpStatus.OK);
 
         }
